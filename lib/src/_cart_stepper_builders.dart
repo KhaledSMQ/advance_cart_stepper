@@ -439,31 +439,54 @@ mixin _CartStepperBuildersMixin<T extends num>
         widget.textDirection ?? Directionality.maybeOf(context);
     final isRtl = effectiveDirection == TextDirection.rtl;
 
-    final decrementButton = StepperButton(
-      icon: showDelete ? widget.deleteIcon : widget.decrementIcon,
-      iconSize: iconSize,
-      iconColor: _fgColor,
-      enabled: widget.enabled && canDec && allowInteraction,
-      onTap: () => _decrement(),
-      onLongPressStart: () => _startLongPress(false),
-      onLongPressEnd: _stopLongPress,
-      size: widget.size.buttonTapSize,
-      splashColor: _splColor,
-      highlightColor: _hlColor,
-    );
+    // While editing, the -/+ buttons become discard/commit actions so the
+    // stepper reads as an inline editor.
+    final editing = _isEditingManually &&
+        widget.enableManualInput &&
+        widget.manualInputConfig.showEditActions;
+    final editIconSize = widget.manualInputConfig.editIconSize ?? iconSize;
 
-    final incrementButton = StepperButton(
-      icon: widget.incrementIcon,
-      iconSize: iconSize,
-      iconColor: _fgColor,
-      enabled: widget.enabled && canInc && allowInteraction,
-      onTap: () => _increment(),
-      onLongPressStart: () => _startLongPress(true),
-      onLongPressEnd: _stopLongPress,
-      size: widget.size.buttonTapSize,
-      splashColor: _splColor,
-      highlightColor: _hlColor,
-    );
+    final decrementButton = editing
+        ? _buildEditActionButton(
+            icon: widget.manualInputConfig.cancelIcon,
+            iconSize: editIconSize,
+            iconColor: widget.manualInputConfig.cancelIconColor ?? _fgColor,
+            backgroundColor: widget.manualInputConfig.cancelBackgroundColor,
+            onTap: _cancelManualInput,
+          )
+        : StepperButton(
+            icon: showDelete ? widget.deleteIcon : widget.decrementIcon,
+            iconSize: iconSize,
+            iconColor: _fgColor,
+            enabled: widget.enabled && canDec && allowInteraction,
+            onTap: () => _decrement(),
+            onLongPressStart: () => _startLongPress(false),
+            onLongPressEnd: _stopLongPress,
+            size: widget.size.buttonTapSize,
+            splashColor: _splColor,
+            highlightColor: _hlColor,
+          );
+
+    final incrementButton = editing
+        ? _buildEditActionButton(
+            icon: widget.manualInputConfig.confirmIcon,
+            iconSize: editIconSize,
+            iconColor: widget.manualInputConfig.confirmIconColor ?? _fgColor,
+            backgroundColor: widget.manualInputConfig.confirmBackgroundColor,
+            onTap: () => _submitManualInput(_manualInputController?.text ?? ''),
+          )
+        : StepperButton(
+            icon: widget.incrementIcon,
+            iconSize: iconSize,
+            iconColor: _fgColor,
+            enabled: widget.enabled && canInc && allowInteraction,
+            onTap: () => _increment(),
+            onLongPressStart: () => _startLongPress(true),
+            onLongPressEnd: _stopLongPress,
+            size: widget.size.buttonTapSize,
+            splashColor: _splColor,
+            highlightColor: _hlColor,
+          );
 
     final quantityDisplay = Expanded(
       child: Center(
@@ -492,6 +515,46 @@ mixin _CartStepperBuildersMixin<T extends num>
         quantityDisplay,
         lastButton,
       ],
+    );
+  }
+
+  // ============================================================================
+  // Edit-mode Actions (cancel / confirm)
+  // ============================================================================
+  Widget _buildEditActionButton({
+    required IconData icon,
+    required double iconSize,
+    required Color iconColor,
+    required Color? backgroundColor,
+    required VoidCallback onTap,
+  }) {
+    final tapSize = widget.size.buttonTapSize;
+    // The painted circle is inset from the tap target so it never touches the
+    // stepper's rounded edge; the full tapSize stays hittable.
+    final circleSize = math.min(tapSize, widget.size.height - 8);
+
+    return SizedBox(
+      width: tapSize,
+      height: tapSize,
+      child: Center(
+        child: SizedBox(
+          width: circleSize,
+          height: circleSize,
+          child: Material(
+            color: backgroundColor ?? Colors.transparent,
+            shape: const CircleBorder(),
+            clipBehavior: Clip.antiAlias,
+            child: InkWell(
+              onTap: onTap,
+              splashColor: _splColor,
+              highlightColor: _hlColor,
+              child: Center(
+                child: Icon(icon, size: iconSize, color: iconColor),
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 
@@ -529,24 +592,13 @@ mixin _CartStepperBuildersMixin<T extends num>
       formatter: widget.quantityFormatter,
     );
 
+    // Tappable but undecorated — the stepper switches to its inline editor on
+    // tap, so the number needs no extra affordance chrome.
     if (widget.enableManualInput && widget.enabled && !_isLoading) {
       return GestureDetector(
         onTap: _startManualInput,
         behavior: HitTestBehavior.opaque,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-          decoration: BoxDecoration(
-            color: _fgColor.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(4),
-            border: Border(
-              bottom: BorderSide(
-                color: _fgColor.withValues(alpha: 0.5),
-                width: 1.5,
-              ),
-            ),
-          ),
-          child: counter,
-        ),
+        child: counter,
       );
     }
 
@@ -563,28 +615,20 @@ mixin _CartStepperBuildersMixin<T extends num>
       fontWeight: widget.style.fontWeight,
     ).merge(widget.style.textStyle);
 
+    // `filled: false` is explicit so an ambient InputDecorationTheme cannot
+    // paint a background behind the field — it must blend with the stepper.
     final decoration = widget.manualInputDecoration ??
-        InputDecoration(
+        const InputDecoration(
           isDense: true,
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          filled: false,
+          contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           border: InputBorder.none,
           enabledBorder: InputBorder.none,
           focusedBorder: InputBorder.none,
         );
 
-    return Container(
+    return SizedBox(
       width: widget.size.expandedWidth * 0.35,
-      decoration: BoxDecoration(
-        color: _fgColor.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(4),
-        border: Border(
-          bottom: BorderSide(
-            color: _fgColor,
-            width: 2,
-          ),
-        ),
-      ),
       child: TextField(
         controller: _manualInputController,
         focusNode: _manualInputFocusNode,
@@ -601,8 +645,14 @@ mixin _CartStepperBuildersMixin<T extends num>
         ],
         onSubmitted: _submitManualInput,
         onTapOutside: (_) {
-          if (_isEditingManually) {
+          if (!_isEditingManually) return;
+          // Tapping away either commits the value or discards it, but either
+          // way it must leave edit mode — otherwise the stepper stays stuck
+          // showing a text field.
+          if (widget.manualInputConfig.submitOnFocusLost) {
             _submitManualInput(_manualInputController?.text ?? '');
+          } else {
+            _cancelManualInput();
           }
         },
       ),

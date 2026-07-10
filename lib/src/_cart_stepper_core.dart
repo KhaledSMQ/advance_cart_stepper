@@ -62,6 +62,9 @@ class _CartStepperCore<T extends num> extends StatefulWidget {
   final ValueChanged<num>? onManualInputSubmitted;
   final Widget Function(BuildContext, num, ValueChanged<String>, VoidCallback)?
       manualInputBuilder;
+
+  /// Edit-mode presentation (cancel/confirm actions) for manual input.
+  final CartStepperManualInputConfig manualInputConfig;
   final CollapsedButtonBuilder? collapsedBuilder;
   final double? collapsedWidth;
   final double? collapsedHeight;
@@ -128,6 +131,7 @@ class _CartStepperCore<T extends num> extends StatefulWidget {
     this.manualInputDecoration,
     this.onManualInputSubmitted,
     this.manualInputBuilder,
+    this.manualInputConfig = const CartStepperManualInputConfig(),
     this.collapsedBuilder,
     this.collapsedWidth,
     this.collapsedHeight,
@@ -140,7 +144,8 @@ class _CartStepperCore<T extends num> extends StatefulWidget {
     this.controller,
     this.quantityStream,
   })  : assert(minQuantity > 0, 'minQuantity must be > 0'),
-        assert(maxQuantity > minQuantity, 'maxQuantity must be > minQuantity'),
+        assert(
+            maxQuantity >= minQuantity, 'maxQuantity must be >= minQuantity'),
         assert(step > 0, 'step must be > 0'),
         assert(quantity >= 0, 'quantity cannot be negative');
 

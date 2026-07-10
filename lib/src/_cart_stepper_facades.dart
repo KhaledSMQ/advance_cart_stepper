@@ -515,6 +515,7 @@ class AsyncCartStepper<T extends num> extends StatelessWidget {
       manualInputDecoration: manualInput?.decoration,
       onManualInputSubmitted: manualInput?.onSubmitted,
       manualInputBuilder: manualInput?.builder,
+      manualInputConfig: manualInput ?? const CartStepperManualInputConfig(),
       // Error handling
       onError: onError,
       errorBuilder: errorBuilder,
