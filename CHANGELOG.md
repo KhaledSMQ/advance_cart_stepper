@@ -2,6 +2,30 @@
 
 All notable changes to this project will be documented in this file.
 
+## 2.1.0
+
+### Features
+
+- **Inline edit mode for manual input.** Tapping the quantity now turns the stepper into an editor in place: the number becomes a text field and the `-` / `+` buttons swap for cancel (`✕`) and confirm (`✓`) actions. Configure it via `CartStepperManualInputConfig`:
+  - `showEditActions` (default `true`) — set to `false` to keep `-` / `+` visible while editing
+  - `cancelIcon` / `confirmIcon` — icon overrides (default `Icons.close` / `Icons.check`)
+  - `editIconSize` — size of the cancel/confirm icons, defaults to the stepper's normal icon size
+  - `cancelIconColor` / `confirmIconColor` — default to the stepper's foreground color
+  - `cancelBackgroundColor` / `confirmBackgroundColor` — circular button backgrounds, transparent by default
+  - `editBackgroundColor` / `editForegroundColor` — recolor the whole pill (and the number) while editing; default to the stepper's normal colors
+  - `submitOnFocusLost` (default `true`) — set to `false` so only the explicit confirm/cancel buttons leave edit mode
+
+### Bug Fixes
+
+- **Auto-collapse no longer fires while editing.** The collapse timer was being *restarted* when manual input began, so the stepper would collapse mid-keystroke. It is now suppressed until editing ends.
+- **Collapsing while editing no longer strands the stepper in edit mode.** Deleting the quantity (or any collapse to 0) left `_isEditingManually` set, so re-expanding showed an empty text field instead of the quantity. All collapse paths now exit edit mode.
+- **Tapping outside always leaves edit mode.** Previously, with `submitOnFocusLost: false`, an outside tap did nothing and the stepper stayed stuck as a text field. It now commits or cancels depending on that flag.
+
+### Changes
+
+- **Removed the decorative box around the quantity** that was drawn whenever `enableManualInput` was on. The number is still tappable, but renders plain — the switch to the inline editor is the affordance. Callers that relied on the tinted background + bottom border should supply their own wrapper.
+- The cancel/confirm circles are now inset from the button tap target so they never overflow the stepper's rounded edge; the full tap area stays hittable.
+
 ## 2.0.3
 
 ### Bug Fixes

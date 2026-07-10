@@ -806,6 +806,52 @@ class CartStepperManualInputConfig {
     VoidCallback onCancel,
   )? builder;
 
+  /// Whether entering manual input swaps the decrement/increment buttons for
+  /// cancel (`✕`) and confirm (`✓`) actions.
+  ///
+  /// When `true` (the default), the stepper becomes an inline editor: the
+  /// quantity turns into a text field and the two side buttons commit or
+  /// discard the typed value. When `false`, `-`/`+` remain visible.
+  final bool showEditActions;
+
+  /// Icon for the cancel (discard) action shown while editing.
+  final IconData cancelIcon;
+
+  /// Icon for the confirm (commit) action shown while editing.
+  final IconData confirmIcon;
+
+  /// Size of the cancel/confirm icons. Falls back to the stepper's normal
+  /// icon size when null.
+  final double? editIconSize;
+
+  /// Icon color of the cancel action. Falls back to the stepper's foreground
+  /// color when null.
+  final Color? cancelIconColor;
+
+  /// Icon color of the confirm action. Falls back to the stepper's foreground
+  /// color when null.
+  final Color? confirmIconColor;
+
+  /// Circular background behind the cancel action. Transparent when null.
+  final Color? cancelBackgroundColor;
+
+  /// Circular background behind the confirm action. Transparent when null.
+  final Color? confirmBackgroundColor;
+
+  /// Pill background of the whole stepper while editing. Falls back to the
+  /// stepper's normal background color when null.
+  final Color? editBackgroundColor;
+
+  /// Foreground (number + cursor) color while editing. Falls back to the
+  /// stepper's normal foreground color when null.
+  final Color? editForegroundColor;
+
+  /// Whether losing focus (e.g. tapping outside) commits the typed value.
+  ///
+  /// Defaults to `true`. Set to `false` when the explicit confirm/cancel
+  /// buttons should be the only way to leave edit mode.
+  final bool submitOnFocusLost;
+
   /// Creates a manual input configuration.
   const CartStepperManualInputConfig({
     this.enabled = true,
@@ -813,6 +859,17 @@ class CartStepperManualInputConfig {
     this.decoration,
     this.onSubmitted,
     this.builder,
+    this.showEditActions = true,
+    this.cancelIcon = Icons.close,
+    this.confirmIcon = Icons.check,
+    this.editIconSize,
+    this.cancelIconColor,
+    this.confirmIconColor,
+    this.cancelBackgroundColor,
+    this.confirmBackgroundColor,
+    this.editBackgroundColor,
+    this.editForegroundColor,
+    this.submitOnFocusLost = true,
   });
 
   /// Creates a copy of this configuration with the given fields replaced.
@@ -827,6 +884,17 @@ class CartStepperManualInputConfig {
       ValueChanged<String> onSubmit,
       VoidCallback onCancel,
     )? builder,
+    bool? showEditActions,
+    IconData? cancelIcon,
+    IconData? confirmIcon,
+    double? editIconSize,
+    Color? cancelIconColor,
+    Color? confirmIconColor,
+    Color? cancelBackgroundColor,
+    Color? confirmBackgroundColor,
+    Color? editBackgroundColor,
+    Color? editForegroundColor,
+    bool? submitOnFocusLost,
   }) {
     return CartStepperManualInputConfig(
       enabled: enabled ?? this.enabled,
@@ -834,6 +902,19 @@ class CartStepperManualInputConfig {
       decoration: decoration ?? this.decoration,
       onSubmitted: onSubmitted ?? this.onSubmitted,
       builder: builder ?? this.builder,
+      showEditActions: showEditActions ?? this.showEditActions,
+      cancelIcon: cancelIcon ?? this.cancelIcon,
+      confirmIcon: confirmIcon ?? this.confirmIcon,
+      editIconSize: editIconSize ?? this.editIconSize,
+      cancelIconColor: cancelIconColor ?? this.cancelIconColor,
+      confirmIconColor: confirmIconColor ?? this.confirmIconColor,
+      cancelBackgroundColor:
+          cancelBackgroundColor ?? this.cancelBackgroundColor,
+      confirmBackgroundColor:
+          confirmBackgroundColor ?? this.confirmBackgroundColor,
+      editBackgroundColor: editBackgroundColor ?? this.editBackgroundColor,
+      editForegroundColor: editForegroundColor ?? this.editForegroundColor,
+      submitOnFocusLost: submitOnFocusLost ?? this.submitOnFocusLost,
     );
   }
 
@@ -845,7 +926,18 @@ class CartStepperManualInputConfig {
         other.keyboardType == keyboardType &&
         other.decoration == decoration &&
         other.onSubmitted == onSubmitted &&
-        other.builder == builder;
+        other.builder == builder &&
+        other.showEditActions == showEditActions &&
+        other.cancelIcon == cancelIcon &&
+        other.confirmIcon == confirmIcon &&
+        other.editIconSize == editIconSize &&
+        other.cancelIconColor == cancelIconColor &&
+        other.confirmIconColor == confirmIconColor &&
+        other.cancelBackgroundColor == cancelBackgroundColor &&
+        other.confirmBackgroundColor == confirmBackgroundColor &&
+        other.editBackgroundColor == editBackgroundColor &&
+        other.editForegroundColor == editForegroundColor &&
+        other.submitOnFocusLost == submitOnFocusLost;
   }
 
   @override
@@ -855,6 +947,17 @@ class CartStepperManualInputConfig {
         decoration,
         onSubmitted,
         builder,
+        showEditActions,
+        cancelIcon,
+        confirmIcon,
+        editIconSize,
+        cancelIconColor,
+        confirmIconColor,
+        cancelBackgroundColor,
+        confirmBackgroundColor,
+        editBackgroundColor,
+        editForegroundColor,
+        submitOnFocusLost,
       );
 }
 

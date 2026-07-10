@@ -22,6 +22,7 @@ mixin _CartStepperOperationsMixin<T extends num> on _CartStepperStateBase<T> {
     if (newQty == 0) {
       if (_isExpanded && widget.autoCollapse) {
         _isExpanded = false;
+        _exitEditMode();
         _controller.reverse();
         _collapseTimer?.cancel();
       }
@@ -35,15 +36,30 @@ mixin _CartStepperOperationsMixin<T extends num> on _CartStepperStateBase<T> {
     }
   }
 
+  /// Leaves manual-input mode without committing, so a collapsed stepper never
+  /// re-expands into a stale (and empty) text field instead of the quantity.
+  void _exitEditMode() {
+    if (!_isEditingManually) return;
+    _isEditingManually = false;
+    _isSubmittingManualInput = false;
+    _manualInputFocusNode?.unfocus();
+  }
+
   // ============================================================================
   // Timer Management
   // ============================================================================
   void _resetCollapseTimer() {
     _collapseTimer?.cancel();
+    // Never auto-collapse while the user is typing a quantity — they'd lose
+    // the edit mid-keystroke. The timer resumes once editing ends.
+    if (_isEditingManually) return;
     if (widget.autoCollapseDelay != null && _isExpanded) {
       _collapseTimer = Timer(widget.autoCollapseDelay!, () {
-        if (!mounted || !_isExpanded) return;
-        setState(() => _isExpanded = false);
+        if (!mounted || !_isExpanded || _isEditingManually) return;
+        setState(() {
+          _isExpanded = false;
+          _exitEditMode();
+        });
         _controller.reverse();
       });
     }
@@ -151,6 +167,7 @@ mixin _CartStepperOperationsMixin<T extends num> on _CartStepperStateBase<T> {
 
   void _onManualInputFocusChange() {
     if (!mounted) return;
+    if (!widget.manualInputConfig.submitOnFocusLost) return;
     if (_manualInputFocusNode != null &&
         !_manualInputFocusNode!.hasFocus &&
         _isEditingManually) {
