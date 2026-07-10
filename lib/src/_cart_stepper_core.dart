@@ -309,9 +309,20 @@ abstract class _CartStepperStateBase<T extends num>
   // ============================================================================
   // Color Accessors
   // ============================================================================
-  Color get _bgColor => _backgroundColor!;
 
-  Color get _fgColor => _foregroundColor!;
+  /// Whether the inline editor is currently active.
+  bool get _editing =>
+      _isEditingManually &&
+      widget.enableManualInput &&
+      widget.manualInputConfig.showEditActions;
+
+  Color get _bgColor =>
+      (_editing ? widget.manualInputConfig.editBackgroundColor : null) ??
+      _backgroundColor!;
+
+  Color get _fgColor =>
+      (_editing ? widget.manualInputConfig.editForegroundColor : null) ??
+      _foregroundColor!;
 
   Color get _bdColor => _borderColor!;
 

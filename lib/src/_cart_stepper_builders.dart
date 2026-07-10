@@ -441,9 +441,7 @@ mixin _CartStepperBuildersMixin<T extends num>
 
     // While editing, the -/+ buttons become discard/commit actions so the
     // stepper reads as an inline editor.
-    final editing = _isEditingManually &&
-        widget.enableManualInput &&
-        widget.manualInputConfig.showEditActions;
+    final editing = _editing;
     final editIconSize = widget.manualInputConfig.editIconSize ?? iconSize;
 
     final decrementButton = editing

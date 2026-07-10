@@ -838,6 +838,14 @@ class CartStepperManualInputConfig {
   /// Circular background behind the confirm action. Transparent when null.
   final Color? confirmBackgroundColor;
 
+  /// Pill background of the whole stepper while editing. Falls back to the
+  /// stepper's normal background color when null.
+  final Color? editBackgroundColor;
+
+  /// Foreground (number + cursor) color while editing. Falls back to the
+  /// stepper's normal foreground color when null.
+  final Color? editForegroundColor;
+
   /// Whether losing focus (e.g. tapping outside) commits the typed value.
   ///
   /// Defaults to `true`. Set to `false` when the explicit confirm/cancel
@@ -859,6 +867,8 @@ class CartStepperManualInputConfig {
     this.confirmIconColor,
     this.cancelBackgroundColor,
     this.confirmBackgroundColor,
+    this.editBackgroundColor,
+    this.editForegroundColor,
     this.submitOnFocusLost = true,
   });
 
@@ -882,6 +892,8 @@ class CartStepperManualInputConfig {
     Color? confirmIconColor,
     Color? cancelBackgroundColor,
     Color? confirmBackgroundColor,
+    Color? editBackgroundColor,
+    Color? editForegroundColor,
     bool? submitOnFocusLost,
   }) {
     return CartStepperManualInputConfig(
@@ -900,6 +912,8 @@ class CartStepperManualInputConfig {
           cancelBackgroundColor ?? this.cancelBackgroundColor,
       confirmBackgroundColor:
           confirmBackgroundColor ?? this.confirmBackgroundColor,
+      editBackgroundColor: editBackgroundColor ?? this.editBackgroundColor,
+      editForegroundColor: editForegroundColor ?? this.editForegroundColor,
       submitOnFocusLost: submitOnFocusLost ?? this.submitOnFocusLost,
     );
   }
@@ -921,6 +935,8 @@ class CartStepperManualInputConfig {
         other.confirmIconColor == confirmIconColor &&
         other.cancelBackgroundColor == cancelBackgroundColor &&
         other.confirmBackgroundColor == confirmBackgroundColor &&
+        other.editBackgroundColor == editBackgroundColor &&
+        other.editForegroundColor == editForegroundColor &&
         other.submitOnFocusLost == submitOnFocusLost;
   }
 
@@ -939,6 +955,8 @@ class CartStepperManualInputConfig {
         confirmIconColor,
         cancelBackgroundColor,
         confirmBackgroundColor,
+        editBackgroundColor,
+        editForegroundColor,
         submitOnFocusLost,
       );
 }

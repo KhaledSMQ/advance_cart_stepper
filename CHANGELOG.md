@@ -12,6 +12,7 @@ All notable changes to this project will be documented in this file.
   - `editIconSize` — size of the cancel/confirm icons, defaults to the stepper's normal icon size
   - `cancelIconColor` / `confirmIconColor` — default to the stepper's foreground color
   - `cancelBackgroundColor` / `confirmBackgroundColor` — circular button backgrounds, transparent by default
+  - `editBackgroundColor` / `editForegroundColor` — recolor the whole pill (and the number) while editing; default to the stepper's normal colors
   - `submitOnFocusLost` (default `true`) — set to `false` so only the explicit confirm/cancel buttons leave edit mode
 
 ### Bug Fixes
