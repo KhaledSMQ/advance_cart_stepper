@@ -42,6 +42,7 @@ mixin _CartStepperOperationsMixin<T extends num> on _CartStepperStateBase<T> {
     if (!_isEditingManually) return;
     _isEditingManually = false;
     _isSubmittingManualInput = false;
+    _editActionInProgress = false;
     _manualInputFocusNode?.unfocus();
   }
 
@@ -97,8 +98,19 @@ mixin _CartStepperOperationsMixin<T extends num> on _CartStepperStateBase<T> {
     });
   }
 
+  void _beginEditAction() {
+    _editActionInProgress = true;
+  }
+
+  void _endEditAction() {
+    _editActionInProgress = false;
+  }
+
   void _submitManualInput(String value) {
-    if (!_isEditingManually || _isSubmittingManualInput) return;
+    if (!_isEditingManually || _isSubmittingManualInput) {
+      _endEditAction();
+      return;
+    }
     _isSubmittingManualInput = true;
 
     final currentQty = _displayQuantity;
@@ -111,6 +123,8 @@ mixin _CartStepperOperationsMixin<T extends num> on _CartStepperStateBase<T> {
     setState(() {
       _isEditingManually = false;
     });
+    _manualInputFocusNode?.unfocus();
+    _endEditAction();
 
     if (clampedValue != currentQty) {
       if (!_validateChange(currentQty, clampedValue)) {
@@ -158,15 +172,22 @@ mixin _CartStepperOperationsMixin<T extends num> on _CartStepperStateBase<T> {
   }
 
   void _cancelManualInput() {
-    if (!_isEditingManually) return;
+    if (!_isEditingManually) {
+      _endEditAction();
+      return;
+    }
     setState(() {
       _isEditingManually = false;
     });
+    _manualInputFocusNode?.unfocus();
+    _endEditAction();
     _resetCollapseTimer();
   }
 
   void _onManualInputFocusChange() {
     if (!mounted) return;
+    // Confirm/cancel buttons own the commit; ignore the focus loss they cause.
+    if (_editActionInProgress) return;
     if (!widget.manualInputConfig.submitOnFocusLost) return;
     if (_manualInputFocusNode != null &&
         !_manualInputFocusNode!.hasFocus &&

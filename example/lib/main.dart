@@ -17,12 +17,14 @@ class CartStepperExampleApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFFD84315)),
         useMaterial3: true,
       ),
-      darkTheme: ThemeData.dark(useMaterial3: true).copyWith(
+      darkTheme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
           seedColor: const Color(0xFFD84315),
           brightness: Brightness.dark,
         ),
+        useMaterial3: true,
       ),
+      themeMode: ThemeMode.system,
       home: const CartStepperDemo(),
     );
   }
@@ -292,7 +294,7 @@ class _BasicsTabState extends State<_BasicsTab>
               'Fully custom widget via collapsedBuilder',
               style: TextStyle(
                 fontSize: 12,
-                color: Colors.grey[600],
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
                 fontStyle: FontStyle.italic,
               ),
             ),
@@ -318,7 +320,7 @@ class _BasicsTabState extends State<_BasicsTab>
               'Tap + to add, use -/+ to adjust, trash to remove',
               style: TextStyle(
                 fontSize: 12,
-                color: Colors.grey[600],
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
                 fontStyle: FontStyle.italic,
               ),
             ),
@@ -679,7 +681,7 @@ class _AsyncTabState extends State<_AsyncTab>
               'Notice: quantity updates instantly while loading',
               style: TextStyle(
                 fontSize: 12,
-                color: Colors.grey[600],
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
                 fontStyle: FontStyle.italic,
               ),
             ),
@@ -839,7 +841,7 @@ class _AsyncTabState extends State<_AsyncTab>
               'Try incrementing past 5 to trigger an error',
               style: TextStyle(
                 fontSize: 12,
-                color: Colors.grey[600],
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
                 fontStyle: FontStyle.italic,
               ),
             ),
@@ -986,10 +988,12 @@ class _AdvancedTabState extends State<_AdvancedTab>
   // Validation
   int _validationQty = 2;
 
-  // Manual Input
+  // Manual Input / Inline Edit
   int _manualInputQty = 5;
+  int _inlineEditStyledQty = 8;
   int _manualInputLargeQty = 25;
   int _customInputBuilderQty = 10;
+  int _noEditActionsQty = 4;
 
   // v2.0 new features
   double _decimalQty = 1.5;
@@ -1110,7 +1114,7 @@ class _AdvancedTabState extends State<_AdvancedTab>
               'Long-press and hold +/- buttons to see the difference',
               style: TextStyle(
                 fontSize: 12,
-                color: Colors.grey[600],
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
                 fontStyle: FontStyle.italic,
               ),
             ),
@@ -1278,7 +1282,7 @@ class _AdvancedTabState extends State<_AdvancedTab>
               'Wait 3 seconds to see it collapse to badge view',
               style: TextStyle(
                 fontSize: 12,
-                color: Colors.grey[600],
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
                 fontStyle: FontStyle.italic,
               ),
             ),
@@ -1363,7 +1367,7 @@ class _AdvancedTabState extends State<_AdvancedTab>
               'CartStepper<double> with step: 0.5',
               style: TextStyle(
                 fontSize: 12,
-                color: Colors.grey[600],
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
                 fontStyle: FontStyle.italic,
               ),
             ),
@@ -1399,11 +1403,11 @@ class _AdvancedTabState extends State<_AdvancedTab>
         const SizedBox(height: 24),
         _buildSection(
           context,
-          'Manual Input',
-          'Tap on the quantity to type a value directly',
+          'Inline Edit Mode',
+          'Tap the quantity to type a value — −/+ become ✕/✓',
           [
             _buildRow(
-              'Tap to edit (max: 99)',
+              'Default inline edit',
               AsyncCartStepper(
                 quantity: _manualInputQty,
                 manualInputConfig: CartStepperManualInputConfig(
@@ -1411,7 +1415,7 @@ class _AdvancedTabState extends State<_AdvancedTab>
                   onSubmitted: (qty) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text('Manually set to $qty'),
+                        content: Text('Confirmed: $qty'),
                         duration: const Duration(seconds: 1),
                       ),
                     );
@@ -1424,16 +1428,57 @@ class _AdvancedTabState extends State<_AdvancedTab>
             ),
             const SizedBox(height: 8),
             Text(
-              'Tap the number in the stepper to open keyboard input',
+              'Tap the number → type → ✓ to commit or ✕ to discard',
               style: TextStyle(
                 fontSize: 12,
-                color: Colors.grey[600],
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
                 fontStyle: FontStyle.italic,
               ),
             ),
             const SizedBox(height: 16),
             _buildRow(
-              'Large size with manual input',
+              'Styled edit actions',
+              AsyncCartStepper(
+                quantity: _inlineEditStyledQty,
+                style: const CartStepperStyle(
+                  backgroundColor: Color(0xFF1565C0),
+                  foregroundColor: Colors.white,
+                ),
+                manualInputConfig: CartStepperManualInputConfig(
+                  enabled: true,
+                  editBackgroundColor: const Color(0xFF0D47A1),
+                  editForegroundColor: Colors.white,
+                  cancelBackgroundColor: Colors.red.shade700,
+                  confirmBackgroundColor: Colors.green.shade600,
+                  cancelIconColor: Colors.white,
+                  confirmIconColor: Colors.white,
+                  submitOnFocusLost: false,
+                  onSubmitted: (qty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Saved: $qty'),
+                        duration: const Duration(seconds: 1),
+                      ),
+                    );
+                  },
+                ),
+                onQuantityChanged: (qty) =>
+                    setState(() => _inlineEditStyledQty = qty),
+                onRemove: () => setState(() => _inlineEditStyledQty = 0),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Colored cancel/confirm + edit pill; only ✓/✕ leave edit mode',
+              style: TextStyle(
+                fontSize: 12,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+            const SizedBox(height: 16),
+            _buildRow(
+              'Large size',
               AsyncCartStepper(
                 quantity: _manualInputLargeQty,
                 size: CartStepperSize.large,
@@ -1448,52 +1493,84 @@ class _AdvancedTabState extends State<_AdvancedTab>
             ),
             const SizedBox(height: 16),
             _buildRow(
+              'Without edit actions (−/+ stay)',
+              AsyncCartStepper(
+                quantity: _noEditActionsQty,
+                manualInputConfig: const CartStepperManualInputConfig(
+                  enabled: true,
+                  showEditActions: false,
+                ),
+                onQuantityChanged: (qty) =>
+                    setState(() => _noEditActionsQty = qty),
+                onRemove: () => setState(() => _noEditActionsQty = 0),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Keyboard still works; −/+ remain visible while typing',
+              style: TextStyle(
+                fontSize: 12,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+            const SizedBox(height: 16),
+            _buildRow(
               'Custom input builder',
               AsyncCartStepper(
                 quantity: _customInputBuilderQty,
                 maxQuantity: 50,
                 manualInputConfig: CartStepperManualInputConfig(
                   enabled: true,
+                  showEditActions: false,
                   builder: (context, currentValue, onSubmit, onCancel) {
                     final controller =
                         TextEditingController(text: currentValue.toString());
-                    return Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.white, width: 2),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          SizedBox(
-                            width: 40,
-                            child: TextField(
-                              controller: controller,
-                              keyboardType: TextInputType.number,
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
+                    return TextFieldTapRegion(
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.white, width: 2),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            SizedBox(
+                              width: 40,
+                              child: TextField(
+                                controller: controller,
+                                keyboardType: TextInputType.number,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                decoration: const InputDecoration(
+                                  isDense: true,
+                                  contentPadding: EdgeInsets.zero,
+                                  border: InputBorder.none,
+                                ),
+                                autofocus: true,
+                                onSubmitted: onSubmit,
                               ),
-                              decoration: const InputDecoration(
-                                isDense: true,
-                                contentPadding: EdgeInsets.zero,
-                                border: InputBorder.none,
-                              ),
-                              autofocus: true,
-                              onSubmitted: onSubmit,
                             ),
-                          ),
-                          GestureDetector(
-                            onTap: () => onSubmit(controller.text),
-                            child: const Icon(Icons.check,
-                                color: Colors.white, size: 16),
-                          ),
-                        ],
+                            GestureDetector(
+                              onTap: () => onSubmit(controller.text),
+                              child: const Icon(Icons.check,
+                                  color: Colors.white, size: 16),
+                            ),
+                            const SizedBox(width: 4),
+                            GestureDetector(
+                              onTap: onCancel,
+                              child: const Icon(Icons.close,
+                                  color: Colors.white70, size: 16),
+                            ),
+                          ],
+                        ),
                       ),
                     );
                   },
@@ -1505,10 +1582,10 @@ class _AdvancedTabState extends State<_AdvancedTab>
             ),
             const SizedBox(height: 8),
             Text(
-              'Custom builder with a confirm button',
+              'Fully custom field UI via manualInputConfig.builder',
               style: TextStyle(
                 fontSize: 12,
-                color: Colors.grey[600],
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
                 fontStyle: FontStyle.italic,
               ),
             ),
@@ -1544,7 +1621,7 @@ class _AdvancedTabState extends State<_AdvancedTab>
               'Notice the increment/decrement buttons are swapped in RTL',
               style: TextStyle(
                 fontSize: 12,
-                color: Colors.grey[600],
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
                 fontStyle: FontStyle.italic,
               ),
             ),
@@ -1573,7 +1650,7 @@ class _AdvancedTabState extends State<_AdvancedTab>
               'Delete an item and watch the undo indicator appear',
               style: TextStyle(
                 fontSize: 12,
-                color: Colors.grey[600],
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
                 fontStyle: FontStyle.italic,
               ),
             ),
@@ -1634,7 +1711,7 @@ class _AdvancedTabState extends State<_AdvancedTab>
               'Tap +/- to see the change type reported above',
               style: TextStyle(
                 fontSize: 12,
-                color: Colors.grey[600],
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
                 fontStyle: FontStyle.italic,
               ),
             ),
@@ -1726,7 +1803,7 @@ class _AdvancedTabState extends State<_AdvancedTab>
               'Tap + to see scale transition instead of width animation',
               style: TextStyle(
                 fontSize: 12,
-                color: Colors.grey[600],
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
                 fontStyle: FontStyle.italic,
               ),
             ),
@@ -1867,7 +1944,7 @@ class _ComponentsTabState extends State<_ComponentsTab>
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: Colors.grey.shade100,
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
@@ -1875,7 +1952,11 @@ class _ComponentsTabState extends State<_ComponentsTab>
                 'canDecrement: ${_controller.canDecrement}\n'
                 'isAtMin: ${_controller.isAtMin}\n'
                 'isAtMax: ${_controller.isAtMax}',
-                style: const TextStyle(fontSize: 12, fontFamily: 'monospace'),
+                style: TextStyle(
+                  fontSize: 12,
+                  fontFamily: 'monospace',
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
               ),
             ),
           ],
@@ -1993,7 +2074,7 @@ class _ComponentsTabState extends State<_ComponentsTab>
               'Tap the monitor tile to see onTap callback',
               style: TextStyle(
                 fontSize: 12,
-                color: Colors.grey[600],
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
                 fontStyle: FontStyle.italic,
               ),
             ),
@@ -2035,7 +2116,7 @@ class _ComponentsTabState extends State<_ComponentsTab>
               'CartProductTile<double> with step: 0.25 for weight-based pricing',
               style: TextStyle(
                 fontSize: 12,
-                color: Colors.grey[600],
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
                 fontStyle: FontStyle.italic,
               ),
             ),
@@ -2182,7 +2263,7 @@ class _ComponentsTabState extends State<_ComponentsTab>
               'CartStepperSelectionMode.single',
               style: TextStyle(
                 fontSize: 12,
-                color: Colors.grey[600],
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
                 fontStyle: FontStyle.italic,
               ),
             ),
@@ -2548,7 +2629,7 @@ class _RealWorldTabState extends State<_RealWorldTab>
                     Text(
                       '$_totalItems items',
                       style: theme.textTheme.bodySmall?.copyWith(
-                        color: Colors.grey[600],
+                        color: theme.colorScheme.onSurfaceVariant,
                       ),
                     ),
                   ],
@@ -2560,7 +2641,7 @@ class _RealWorldTabState extends State<_RealWorldTab>
                   Text(
                     'Total',
                     style: theme.textTheme.bodySmall?.copyWith(
-                      color: Colors.grey[600],
+                      color: theme.colorScheme.onSurfaceVariant,
                     ),
                   ),
                   Text(
@@ -2589,12 +2670,12 @@ class _RealWorldTabState extends State<_RealWorldTab>
                   width: 64,
                   height: 64,
                   decoration: BoxDecoration(
-                    color: Colors.grey[200],
+                    color: theme.colorScheme.surfaceContainerHighest,
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Icon(
                     product.image,
-                    color: Colors.grey[600],
+                    color: theme.colorScheme.onSurfaceVariant,
                     size: 32,
                   ),
                 ),
@@ -2624,14 +2705,22 @@ class _RealWorldTabState extends State<_RealWorldTab>
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: Colors.green.shade50,
+            color: theme.brightness == Brightness.dark
+                ? Colors.green.shade900.withValues(alpha: 0.35)
+                : Colors.green.shade50,
             border: Border(
               bottom: BorderSide(color: theme.dividerColor),
             ),
           ),
           child: Row(
             children: [
-              Icon(Icons.storefront, size: 32, color: Colors.green.shade700),
+              Icon(
+                Icons.storefront,
+                size: 32,
+                color: theme.brightness == Brightness.dark
+                    ? Colors.green.shade300
+                    : Colors.green.shade700,
+              ),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
@@ -2646,7 +2735,7 @@ class _RealWorldTabState extends State<_RealWorldTab>
                     Text(
                       'Tap + to add items to your basket',
                       style: theme.textTheme.bodySmall?.copyWith(
-                        color: Colors.grey[600],
+                        color: theme.colorScheme.onSurfaceVariant,
                       ),
                     ),
                   ],
@@ -2811,10 +2900,11 @@ class _ViewToggleButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
     return Material(
       color: isSelected
-          ? theme.colorScheme.primaryContainer
-          : Colors.grey.shade100,
+          ? scheme.primaryContainer
+          : scheme.surfaceContainerHighest,
       borderRadius: BorderRadius.circular(12),
       child: InkWell(
         onTap: onTap,
@@ -2832,16 +2922,17 @@ class _ViewToggleButton extends StatelessWidget {
                     icon,
                     size: 20,
                     color: isSelected
-                        ? theme.colorScheme.primary
-                        : Colors.grey[600],
+                        ? scheme.primary
+                        : scheme.onSurfaceVariant,
                   ),
                 )
               else
                 Icon(
                   icon,
                   size: 20,
-                  color:
-                      isSelected ? theme.colorScheme.primary : Colors.grey[600],
+                  color: isSelected
+                      ? scheme.primary
+                      : scheme.onSurfaceVariant,
                 ),
               const SizedBox(width: 8),
               Flexible(
@@ -2852,8 +2943,8 @@ class _ViewToggleButton extends StatelessWidget {
                     fontWeight:
                         isSelected ? FontWeight.w600 : FontWeight.normal,
                     color: isSelected
-                        ? theme.colorScheme.primary
-                        : Colors.grey[600],
+                        ? scheme.primary
+                        : scheme.onSurfaceVariant,
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -2875,6 +2966,7 @@ Widget _buildSection(
   String description,
   List<Widget> children,
 ) {
+  final scheme = Theme.of(context).colorScheme;
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
@@ -2888,18 +2980,27 @@ Widget _buildSection(
       Text(
         description,
         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Colors.grey[600],
+              color: scheme.onSurfaceVariant,
             ),
       ),
       const SizedBox(height: 16),
       Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.grey[50],
+          color: scheme.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.grey[200]!),
+          border: Border.all(color: scheme.outlineVariant),
         ),
-        child: Column(children: children),
+        child: DefaultTextStyle.merge(
+          style: TextStyle(
+            color: scheme.onSurface,
+            fontSize: 14,
+          ),
+          child: IconTheme.merge(
+            data: IconThemeData(color: scheme.onSurface),
+            child: Column(children: children),
+          ),
+        ),
       ),
     ],
   );
@@ -2910,7 +3011,10 @@ Widget _buildRow(String label, Widget stepper) {
     mainAxisAlignment: MainAxisAlignment.spaceBetween,
     children: [
       Flexible(
-        child: Text(label, style: const TextStyle(fontSize: 14)),
+        child: Text(
+          label,
+          style: const TextStyle(fontSize: 14),
+        ),
       ),
       stepper,
     ],

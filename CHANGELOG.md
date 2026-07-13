@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## 2.1.1
+
+### Bug Fixes
+
+- **iOS confirm/cancel in inline edit mode now apply correctly.** Tapping ✓ or ✕ while the keyboard was open only dismissed the keyboard and left the quantity unchanged. The edit-action buttons are now wrapped in a `TextFieldTapRegion` (and guarded against focus-loss races) so the tap reaches confirm/cancel instead of being treated as "tap outside".
+- **Quantity tap target for inline edit is larger.** Opening edit previously required hitting the digit glyphs; the whole middle area between −/+ is now tappable.
+
 ## 2.1.0
 
 ### Features
