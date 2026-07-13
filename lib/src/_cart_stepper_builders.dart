@@ -531,23 +531,28 @@ mixin _CartStepperBuildersMixin<T extends num>
     // stepper's rounded edge; the full tapSize stays hittable.
     final circleSize = math.min(tapSize, widget.size.height - 8);
 
-    return SizedBox(
-      width: tapSize,
-      height: tapSize,
-      child: Center(
-        child: SizedBox(
-          width: circleSize,
-          height: circleSize,
-          child: Material(
-            color: backgroundColor ?? Colors.transparent,
-            shape: const CircleBorder(),
-            clipBehavior: Clip.antiAlias,
-            child: InkWell(
-              onTap: onTap,
-              splashColor: _splColor,
-              highlightColor: _hlColor,
-              child: Center(
-                child: Icon(icon, size: iconSize, color: iconColor),
+    // Same group as the text field, so tapping these is not treated as a tap
+    // outside it (which would fire on pointer-down and discard the value).
+    return TapRegion(
+      groupId: _editTapRegionGroupId,
+      child: SizedBox(
+        width: tapSize,
+        height: tapSize,
+        child: Center(
+          child: SizedBox(
+            width: circleSize,
+            height: circleSize,
+            child: Material(
+              color: backgroundColor ?? Colors.transparent,
+              shape: const CircleBorder(),
+              clipBehavior: Clip.antiAlias,
+              child: InkWell(
+                onTap: onTap,
+                splashColor: _splColor,
+                highlightColor: _hlColor,
+                child: Center(
+                  child: Icon(icon, size: iconSize, color: iconColor),
+                ),
               ),
             ),
           ),
@@ -607,19 +612,26 @@ mixin _CartStepperBuildersMixin<T extends num>
   // Manual Input Field
   // ============================================================================
   Widget _buildManualInputField(double fontSize) {
+    // `height: 1` keeps the glyph the same visual size as the AnimatedCounter
+    // it replaces — the default line height makes the digits look smaller and
+    // sit off-centre inside the stepper.
     final textStyle = TextStyle(
       color: _fgColor,
       fontSize: fontSize,
       fontWeight: widget.style.fontWeight,
+      height: 1,
     ).merge(widget.style.textStyle);
 
     // `filled: false` is explicit so an ambient InputDecorationTheme cannot
     // paint a background behind the field — it must blend with the stepper.
+    // `isCollapsed` drops the framework's minimum field height so the text
+    // centres on the counter's baseline instead of being pushed down.
     final decoration = widget.manualInputDecoration ??
         const InputDecoration(
           isDense: true,
+          isCollapsed: true,
           filled: false,
-          contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          contentPadding: EdgeInsets.symmetric(horizontal: 4),
           border: InputBorder.none,
           enabledBorder: InputBorder.none,
           focusedBorder: InputBorder.none,
@@ -632,9 +644,15 @@ mixin _CartStepperBuildersMixin<T extends num>
         focusNode: _manualInputFocusNode,
         keyboardType: widget.manualInputKeyboardType,
         textAlign: TextAlign.center,
+        textAlignVertical: TextAlignVertical.center,
         style: textStyle,
         decoration: decoration,
         cursorColor: _fgColor,
+        // Share a tap-region group with the cancel/confirm buttons: without
+        // this, tapping them counts as "outside" and fires on pointer-DOWN,
+        // discarding the value before the button's pointer-UP tap can commit
+        // it (reproducible on iOS).
+        groupId: _editTapRegionGroupId,
         inputFormatters: [
           FilteringTextInputFormatter.allow(RegExp(r'[\d.]')),
           LengthLimitingTextInputFormatter(
