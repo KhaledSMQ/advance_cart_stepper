@@ -487,9 +487,7 @@ mixin _CartStepperBuildersMixin<T extends num>
           );
 
     final quantityDisplay = Expanded(
-      child: Center(
-        child: _buildQuantityDisplay(qty, fontSize),
-      ),
+      child: _buildQuantityDisplay(qty, fontSize),
     );
 
     if (widget.direction == CartStepperDirection.vertical) {
@@ -531,23 +529,32 @@ mixin _CartStepperBuildersMixin<T extends num>
     // stepper's rounded edge; the full tapSize stays hittable.
     final circleSize = math.min(tapSize, widget.size.height - 8);
 
-    return SizedBox(
-      width: tapSize,
-      height: tapSize,
-      child: Center(
-        child: SizedBox(
-          width: circleSize,
-          height: circleSize,
-          child: Material(
-            color: backgroundColor ?? Colors.transparent,
-            shape: const CircleBorder(),
-            clipBehavior: Clip.antiAlias,
-            child: InkWell(
-              onTap: onTap,
-              splashColor: _splColor,
-              highlightColor: _hlColor,
-              child: Center(
-                child: Icon(icon, size: iconSize, color: iconColor),
+    // TextFieldTapRegion keeps these buttons in the TextField's tap group so a
+    // press does not count as "tap outside". Without this, iOS dismisses the
+    // keyboard on the first press and never delivers the confirm/cancel tap.
+    return TextFieldTapRegion(
+      child: SizedBox(
+        width: tapSize,
+        height: tapSize,
+        child: Center(
+          child: SizedBox(
+            width: circleSize,
+            height: circleSize,
+            child: Material(
+              color: backgroundColor ?? Colors.transparent,
+              shape: const CircleBorder(),
+              clipBehavior: Clip.antiAlias,
+              child: InkWell(
+                // Capture on pointer-down so we win the race against focus-loss
+                // handlers if the platform still unfocuses the field.
+                onTapDown: (_) => _beginEditAction(),
+                onTap: onTap,
+                onTapCancel: _endEditAction,
+                splashColor: _splColor,
+                highlightColor: _hlColor,
+                child: Center(
+                  child: Icon(icon, size: iconSize, color: iconColor),
+                ),
               ),
             ),
           ),
@@ -561,19 +568,21 @@ mixin _CartStepperBuildersMixin<T extends num>
   // ============================================================================
   Widget _buildQuantityDisplay(num qty, double fontSize) {
     if (_isLoading && !widget.optimisticUpdate) {
-      return _buildLoadingIndicator();
+      return Center(child: _buildLoadingIndicator());
     }
 
     if (_isEditingManually && widget.enableManualInput) {
       if (widget.manualInputBuilder != null) {
-        return widget.manualInputBuilder!(
-          context,
-          qty,
-          _submitManualInput,
-          _cancelManualInput,
+        return Center(
+          child: widget.manualInputBuilder!(
+            context,
+            qty,
+            _submitManualInput,
+            _cancelManualInput,
+          ),
         );
       }
-      return _buildManualInputField(fontSize);
+      return Center(child: _buildManualInputField(fontSize));
     }
 
     final textStyle = TextStyle(
@@ -590,17 +599,21 @@ mixin _CartStepperBuildersMixin<T extends num>
       formatter: widget.quantityFormatter,
     );
 
-    // Tappable but undecorated — the stepper switches to its inline editor on
-    // tap, so the number needs no extra affordance chrome.
+    // Fill the Expanded middle slot so the whole gap between −/+ is tappable,
+    // not just the digit glyphs (those are easy to miss on a phone).
     if (widget.enableManualInput && widget.enabled && !_isLoading) {
-      return GestureDetector(
-        onTap: _startManualInput,
-        behavior: HitTestBehavior.opaque,
-        child: counter,
+      return Material(
+        type: MaterialType.transparency,
+        child: InkWell(
+          onTap: _startManualInput,
+          splashColor: _splColor,
+          highlightColor: _hlColor,
+          child: Center(child: counter),
+        ),
       );
     }
 
-    return counter;
+    return Center(child: counter);
   }
 
   // ============================================================================
@@ -644,6 +657,9 @@ mixin _CartStepperBuildersMixin<T extends num>
         onSubmitted: _submitManualInput,
         onTapOutside: (_) {
           if (!_isEditingManually) return;
+          // Confirm/cancel are in the same TextFieldTapRegion group, so this
+          // only runs for true outside taps — not the edit action buttons.
+          if (_editActionInProgress) return;
           // Tapping away either commits the value or discards it, but either
           // way it must leave edit mode — otherwise the stepper stays stuck
           // showing a text field.

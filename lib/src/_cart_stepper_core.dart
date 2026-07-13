@@ -232,6 +232,9 @@ abstract class _CartStepperStateBase<T extends num>
   // ============================================================================
   bool _isEditingManually = false;
   bool _isSubmittingManualInput = false;
+  /// True while a confirm/cancel pointer is in progress, so focus-loss must
+  /// not auto-submit/cancel and steal the button's action (common on iOS).
+  bool _editActionInProgress = false;
   TextEditingController? _manualInputController;
   FocusNode? _manualInputFocusNode;
 

@@ -1598,6 +1598,45 @@ void main() {
       expect(find.byType(TextField), findsOneWidget);
     });
 
+    testWidgets('tapping beside the digit still opens manual input',
+        (WidgetTester tester) async {
+      int quantity = 5;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Center(
+              child: AsyncCartStepper(
+                quantity: quantity,
+                collapseConfig: const CartStepperCollapseConfig(
+                  initiallyExpanded: true,
+                ),
+                manualInputConfig: const CartStepperManualInputConfig(
+                  enabled: true,
+                ),
+                onQuantityChanged: (newQty) {
+                  quantity = newQty;
+                },
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      // Tap the gap between − and the digit — previously missed because only
+      // the glyph bounds were hittable.
+      final textCenter = tester.getCenter(find.text('5'));
+      final removeCenter = tester.getCenter(find.byIcon(Icons.remove));
+      await tester.tapAt(
+        Offset((textCenter.dx + removeCenter.dx) / 2, textCenter.dy),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(TextField), findsOneWidget);
+    });
+
     testWidgets('manual input submits on enter',
         (WidgetTester tester) async {
       int quantity = 5;
@@ -1681,6 +1720,97 @@ void main() {
 
       // Should be clamped to max
       expect(quantity, equals(10));
+    });
+
+    testWidgets('confirm button commits typed quantity',
+        (WidgetTester tester) async {
+      int quantity = 5;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: StatefulBuilder(
+              builder: (context, setState) {
+                return AsyncCartStepper(
+                  quantity: quantity,
+                  collapseConfig: const CartStepperCollapseConfig(
+                    initiallyExpanded: true,
+                  ),
+                  manualInputConfig: const CartStepperManualInputConfig(
+                    enabled: true,
+                  ),
+                  maxQuantity: 100,
+                  onQuantityChanged: (newQty) {
+                    setState(() => quantity = newQty);
+                  },
+                );
+              },
+            ),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('5'));
+      await tester.pumpAndSettle();
+      expect(find.byType(TextField), findsOneWidget);
+
+      await tester.enterText(find.byType(TextField), '12');
+      await tester.pump();
+
+      // Confirm (✓) should commit even while the field still has focus —
+      // the regression this guards against is iOS eating that tap to dismiss
+      // the keyboard without applying the value.
+      await tester.tap(find.byIcon(Icons.check));
+      await tester.pumpAndSettle();
+
+      expect(quantity, equals(12));
+      expect(find.byType(TextField), findsNothing);
+    });
+
+    testWidgets('cancel button discards typed quantity',
+        (WidgetTester tester) async {
+      int quantity = 5;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: StatefulBuilder(
+              builder: (context, setState) {
+                return AsyncCartStepper(
+                  quantity: quantity,
+                  collapseConfig: const CartStepperCollapseConfig(
+                    initiallyExpanded: true,
+                  ),
+                  manualInputConfig: const CartStepperManualInputConfig(
+                    enabled: true,
+                  ),
+                  maxQuantity: 100,
+                  onQuantityChanged: (newQty) {
+                    setState(() => quantity = newQty);
+                  },
+                );
+              },
+            ),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('5'));
+      await tester.pumpAndSettle();
+
+      await tester.enterText(find.byType(TextField), '12');
+      await tester.pump();
+
+      await tester.tap(find.byIcon(Icons.close));
+      await tester.pumpAndSettle();
+
+      expect(quantity, equals(5));
+      expect(find.byType(TextField), findsNothing);
+      expect(find.text('5'), findsOneWidget);
     });
   });
 
