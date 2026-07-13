@@ -235,6 +235,10 @@ abstract class _CartStepperStateBase<T extends num>
   TextEditingController? _manualInputController;
   FocusNode? _manualInputFocusNode;
 
+  /// Groups the manual-input field with its cancel/confirm buttons so that
+  /// tapping a button does not register as a tap *outside* the field.
+  final Object _editTapRegionGroupId = Object();
+
   // ============================================================================
   // Undo State
   // ============================================================================

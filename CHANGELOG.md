@@ -20,6 +20,8 @@ All notable changes to this project will be documented in this file.
 - **Auto-collapse no longer fires while editing.** The collapse timer was being *restarted* when manual input began, so the stepper would collapse mid-keystroke. It is now suppressed until editing ends.
 - **Collapsing while editing no longer strands the stepper in edit mode.** Deleting the quantity (or any collapse to 0) left `_isEditingManually` set, so re-expanding showed an empty text field instead of the quantity. All collapse paths now exit edit mode.
 - **Tapping outside always leaves edit mode.** Previously, with `submitOnFocusLost: false`, an outside tap did nothing and the stepper stayed stuck as a text field. It now commits or cancels depending on that flag.
+- **Confirming no longer discards the typed value (iOS).** The confirm/cancel buttons sat outside the text field's tap region, so tapping them fired `onTapOutside` on pointer-*down* and dismissed the edit before the button's pointer-*up* could commit it. The field and its buttons now share a `TapRegion` group.
+- **The edit field's digits now match the quantity's size.** The `TextField`'s default line height and minimum height made the number render smaller and sit off-centre compared to the counter it replaces.
 
 ### Changes
 
